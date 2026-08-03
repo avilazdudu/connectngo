@@ -1,0 +1,26 @@
+import { Routes, Route } from 'react-router-dom'
+import Home from '../pages/Home'
+import Login from '../pages/Login'
+import Cadastro from '../pages/Cadastro'
+import Sobre from '../pages/Sobre'
+import DoadorDashboard from '../pages/DoadorDashboard'
+import OngDashboard from '../pages/OngDashboard'
+import EmpresaDashboard from '../pages/EmpresaDashboard'
+import Perfil from '../pages/Perfil'
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/cadastro" element={<Cadastro />} />
+      <Route path="/sobre" element={<Sobre />} />
+      <Route path="/doador/dashboard" element={<DoadorDashboard />} />
+      <Route path="/ong/dashboard" element={<OngDashboard />} />
+      <Route path="/empresa/dashboard" element={<EmpresaDashboard />} />
+      <Route path="/perfil/:id" element={<Perfil />} />
+    </Routes>
+  )
+}
+
+export default AppRoutes
