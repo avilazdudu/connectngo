@@ -76,6 +76,54 @@ export function TransacoesProvider({ children }) {
     return { success: true, transacao: novaTransacao }
   }
 
+  function adicionarProduto({ empresaId, nome, descricao, creditosNecessarios }) {
+    const novoProduto = {
+      id: `p-${Date.now()}`,
+      nome,
+      descricao,
+      creditosNecessarios: Number(creditosNecessarios),
+    }
+
+    setEmpresas((prev) =>
+      prev.map((e) =>
+        e.id === empresaId
+          ? { ...e, produtos: [...e.produtos, novoProduto] }
+          : e
+      )
+    )
+
+    return novoProduto
+  }
+
+  function solicitarConversao({ empresaId }) {
+    const empresa = empresas.find((e) => e.id === empresaId)
+
+    if (!empresa || empresa.creditosAcumulados <= 0) {
+      return { success: false, message: 'Não há créditos disponíveis para conversão.' }
+    }
+
+    const valorConvertido = empresa.creditosAcumulados
+
+    const novaTransacao = {
+      id: `t-${Date.now()}`,
+      origem: empresaId,
+      destino: 'fiduciario',
+      valor: valorConvertido,
+      tipo: 'conversao',
+      data: new Date().toISOString().slice(0, 10),
+    }
+
+    setTransacoes((prev) => [novaTransacao, ...prev])
+
+    setEmpresas((prev) =>
+      prev.map((e) =>
+        e.id === empresaId ? { ...e, creditosAcumulados: 0 } : e
+      )
+    )
+
+    return { success: true, transacao: novaTransacao, valorConvertido }
+  }
+
   function getSaldoAtual(usuario) {
     if (!usuario) return 0
     const ajuste = saldosExtras[usuario.id] || 0
@@ -112,17 +160,32 @@ export function TransacoesProvider({ children }) {
     }))
   }
 
+  function getHistoricoEmpresa(empresaId) {
+    const empresa = empresas.find((e) => e.id === empresaId)
+    const idsDosProdutos = empresa?.produtos.map((p) => p.id) || []
+
+    return transacoes.filter(
+      (t) =>
+        (t.tipo === 'resgate' && idsDosProdutos.includes(t.destino)) ||
+        (t.tipo === 'conversao' && t.origem === empresaId)
+    )
+  }
+
   const value = {
     transacoes,
     ongs,
     empresas,
     doar,
     resgatar,
+    adicionarProduto,
+    solicitarConversao,
     getSaldoAtual,
     getSaldoOng,
     getSaldoEmpresa,
     getHistoricoPorUsuario,
     getApoiadoresPorOng,
+    getHistoricoEmpresa,
+    getProdutoEEmpresa,
   }
 
   return (
@@ -140,4 +203,14 @@ export function useTransacoes() {
   }
 
   return context
+}
+
+function getProdutoEEmpresa(produtoId) {
+  for (const empresa of empresas) {
+    const produto = empresa.produtos.find((p) => p.id === produtoId)
+    if (produto) {
+      return { produto, empresa }
+    }
+  }
+  return null
 }

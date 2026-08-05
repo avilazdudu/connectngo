@@ -8,6 +8,7 @@ import DoadorOngs from '../pages/DoadorOngs'
 import OngDashboard from '../pages/OngDashboard'
 import OngMarketplace from '../pages/OngMarketplace'
 import EmpresaDashboard from '../pages/EmpresaDashboard'
+import EmpresaProdutos from '../pages/EmpresaProdutos'
 import Perfil from '../pages/Perfil'
 
 function AppRoutes() {
@@ -22,6 +23,7 @@ function AppRoutes() {
       <Route path="/ong/dashboard" element={<OngDashboard />} />
       <Route path="/ong/marketplace" element={<OngMarketplace />} />
       <Route path="/empresa/dashboard" element={<EmpresaDashboard />} />
+      <Route path="/empresa/produtos" element={<EmpresaProdutos />} />
       <Route path="/perfil/:id" element={<Perfil />} />
     </Routes>
   )

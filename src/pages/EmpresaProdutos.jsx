@@ -55,7 +55,6 @@ function EmpresaProdutos() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Formulário de cadastro */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
               <h2 className="font-bold text-gray-800 mb-4">Novo produto</h2>
@@ -103,7 +102,6 @@ function EmpresaProdutos() {
             </div>
           </div>
 
-          {/* Lista de produtos cadastrados */}
           <div className="lg:col-span-2">
             <h2 className="font-bold text-gray-800 mb-4">
               Produtos cadastrados ({empresa?.produtos.length ?? 0})
