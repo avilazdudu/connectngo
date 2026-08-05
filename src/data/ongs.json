@@ -4,6 +4,7 @@
     "nome": "ONG Esperança",
     "cnpj": "12.345.678/0001-90",
     "categoria": "Assistência Social",
+    "regiao": "Sudeste",
     "descricao": "Apoia famílias em situação de vulnerabilidade social oferecendo cestas básicas, roupas e apoio psicológico.",
     "creditosRecebidos": 3200,
     "beneficiarios": 145
@@ -13,6 +14,7 @@
     "nome": "ONG Vida Nova",
     "cnpj": "98.765.432/0001-10",
     "categoria": "Educação",
+    "regiao": "Sudeste",
     "descricao": "Oferece reforço escolar e atividades extracurriculares para crianças e adolescentes em situação de risco.",
     "creditosRecebidos": 1800,
     "beneficiarios": 90
@@ -22,8 +24,69 @@
     "nome": "ONG Mãos Verdes",
     "cnpj": "45.678.912/0001-33",
     "categoria": "Meio Ambiente",
+    "regiao": "Centro-Oeste",
     "descricao": "Promove reflorestamento urbano e educação ambiental em comunidades carentes.",
     "creditosRecebidos": 950,
     "beneficiarios": 60
+  },
+  {
+    "id": "8",
+    "nome": "ONG Raízes do Norte",
+    "cnpj": "11.222.333/0001-44",
+    "categoria": "Educação",
+    "regiao": "Norte",
+    "descricao": "Leva educação e cultura indígena para comunidades ribeirinhas do Amazonas.",
+    "creditosRecebidos": 1800,
+    "beneficiarios": 75
+  },
+  {
+    "id": "9",
+    "nome": "ONG Sertão Solidário",
+    "cnpj": "22.333.444/0001-55",
+    "categoria": "Fome",
+    "regiao": "Nordeste",
+    "descricao": "Combate a fome e promove agricultura sustentável no semiárido pernambucano.",
+    "creditosRecebidos": 2600,
+    "beneficiarios": 210
+  },
+  {
+    "id": "10",
+    "nome": "ONG Cerrado Vivo",
+    "cnpj": "33.444.555/0001-66",
+    "categoria": "Meio Ambiente",
+    "regiao": "Centro-Oeste",
+    "descricao": "Preservação do bioma Cerrado e apoio a comunidades quilombolas em Goiás.",
+    "creditosRecebidos": 1200,
+    "beneficiarios": 40
+  },
+  {
+    "id": "11",
+    "nome": "ONG Pampa Acolhe",
+    "cnpj": "44.555.666/0001-77",
+    "categoria": "Assistência Social",
+    "regiao": "Sul",
+    "descricao": "Acolhimento de famílias em situação de vulnerabilidade no interior do Rio Grande do Sul.",
+    "creditosRecebidos": 2100,
+    "beneficiarios": 130
+  },
+  {
+    "id": "12",
+    "nome": "ONG Patas Solidárias",
+    "cnpj": "55.666.777/0001-88",
+    "categoria": "Animais",
+    "regiao": "Sudeste",
+    "descricao": "Resgate, castração e adoção responsável de animais em situação de abandono.",
+    "creditosRecebidos": 890,
+    "beneficiarios": 320
+  },
+  {
+    "id": "13",
+    "nome": "ONG Saúde para Todos",
+    "cnpj": "66.777.888/0001-99",
+    "categoria": "Saúde",
+    "regiao": "Norte",
+    "descricao": "Leva atendimento médico básico a comunidades ribeirinhas sem acesso a hospitais.",
+    "creditosRecebidos": 1500,
+    "beneficiarios": 95
   }
 ]

@@ -4,6 +4,7 @@ import Login from '../pages/Login'
 import Cadastro from '../pages/Cadastro'
 import Sobre from '../pages/Sobre'
 import DoadorDashboard from '../pages/DoadorDashboard'
+import DoadorOngs from '../pages/DoadorOngs'
 import OngDashboard from '../pages/OngDashboard'
 import EmpresaDashboard from '../pages/EmpresaDashboard'
 import Perfil from '../pages/Perfil'
@@ -16,6 +17,7 @@ function AppRoutes() {
       <Route path="/cadastro" element={<Cadastro />} />
       <Route path="/sobre" element={<Sobre />} />
       <Route path="/doador/dashboard" element={<DoadorDashboard />} />
+      <Route path="/doador/ongs" element={<DoadorOngs />} />
       <Route path="/ong/dashboard" element={<OngDashboard />} />
       <Route path="/empresa/dashboard" element={<EmpresaDashboard />} />
       <Route path="/perfil/:id" element={<Perfil />} />
