@@ -1,0 +1,42 @@
+[
+  {
+    "id": "t1",
+    "origem": "1",
+    "destino": "3",
+    "valor": 100,
+    "tipo": "doacao",
+    "data": "2026-06-10"
+  },
+  {
+    "id": "t2",
+    "origem": "2",
+    "destino": "4",
+    "valor": 200,
+    "tipo": "doacao",
+    "data": "2026-06-15"
+  },
+  {
+    "id": "t3",
+    "origem": "1",
+    "destino": "p1",
+    "valor": 200,
+    "tipo": "resgate",
+    "data": "2026-07-01"
+  },
+  {
+    "id": "t4",
+    "origem": "3",
+    "destino": "5",
+    "valor": 50,
+    "tipo": "repasse",
+    "data": "2026-07-05"
+  },
+  {
+    "id": "t5",
+    "origem": "2",
+    "destino": "p3",
+    "valor": 150,
+    "tipo": "resgate",
+    "data": "2026-07-20"
+  }
+]

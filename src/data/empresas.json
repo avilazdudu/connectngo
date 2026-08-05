@@ -1,0 +1,40 @@
+[
+  {
+    "id": "5",
+    "nome": "TechCorp Ltda",
+    "creditosAcumulados": 5400,
+    "produtos": [
+      {
+        "id": "p1",
+        "nome": "Vale-compras R$50",
+        "descricao": "Vale-compras para lojas parceiras.",
+        "creditosNecessarios": 200
+      },
+      {
+        "id": "p2",
+        "nome": "Fone de Ouvido Bluetooth",
+        "descricao": "Fone sem fio com cancelamento de ruído.",
+        "creditosNecessarios": 500
+      }
+    ]
+  },
+  {
+    "id": "6",
+    "nome": "EcoMarket",
+    "creditosAcumulados": 3100,
+    "produtos": [
+      {
+        "id": "p3",
+        "nome": "Kit Produtos Orgânicos",
+        "descricao": "Cesta com alimentos orgânicos selecionados.",
+        "creditosNecessarios": 150
+      },
+      {
+        "id": "p4",
+        "nome": "Desconto 20% em compras",
+        "descricao": "Cupom de desconto para uso na loja online.",
+        "creditosNecessarios": 100
+      }
+    ]
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "id": "3",
+    "nome": "ONG Esperança",
+    "cnpj": "12.345.678/0001-90",
+    "categoria": "Assistência Social",
+    "descricao": "Apoia famílias em situação de vulnerabilidade social oferecendo cestas básicas, roupas e apoio psicológico.",
+    "creditosRecebidos": 3200,
+    "beneficiarios": 145
+  },
+  {
+    "id": "4",
+    "nome": "ONG Vida Nova",
+    "cnpj": "98.765.432/0001-10",
+    "categoria": "Educação",
+    "descricao": "Oferece reforço escolar e atividades extracurriculares para crianças e adolescentes em situação de risco.",
+    "creditosRecebidos": 1800,
+    "beneficiarios": 90
+  },
+  {
+    "id": "7",
+    "nome": "ONG Mãos Verdes",
+    "cnpj": "45.678.912/0001-33",
+    "categoria": "Meio Ambiente",
+    "descricao": "Promove reflorestamento urbano e educação ambiental em comunidades carentes.",
+    "creditosRecebidos": 950,
+    "beneficiarios": 60
+  }
+]

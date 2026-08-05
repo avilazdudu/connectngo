@@ -1,0 +1,38 @@
+[
+  {
+    "id": "8",
+    "nome": "ONG Raízes do Norte",
+    "categoria": "Educação",
+    "regiao": "Norte",
+    "descricao": "Leva educação e cultura indígena para comunidades ribeirinhas do Amazonas.",
+    "arrecadado": 1800,
+    "meta": 4000
+  },
+  {
+    "id": "9",
+    "nome": "ONG Sertão Solidário",
+    "categoria": "Segurança Alimentar",
+    "regiao": "Nordeste",
+    "descricao": "Combate a fome e promove agricultura sustentável no semiárido pernambucano.",
+    "arrecadado": 2600,
+    "meta": 5000
+  },
+  {
+    "id": "10",
+    "nome": "ONG Cerrado Vivo",
+    "categoria": "Meio Ambiente",
+    "regiao": "Centro-Oeste",
+    "descricao": "Preservação do bioma Cerrado e apoio a comunidades quilombolas em Goiás.",
+    "arrecadado": 1200,
+    "meta": 3000
+  },
+  {
+    "id": "11",
+    "nome": "ONG Pampa Acolhe",
+    "categoria": "Assistência Social",
+    "regiao": "Sul",
+    "descricao": "Acolhimento de famílias em situação de vulnerabilidade no interior do Rio Grande do Sul.",
+    "arrecadado": 2100,
+    "meta": 3500
+  }
+]
