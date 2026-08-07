@@ -2,37 +2,45 @@
   {
     "id": "8",
     "nome": "ONG Raízes do Norte",
+    "cnpj": "11.222.333/0001-44",
     "categoria": "Educação",
     "regiao": "Norte",
     "descricao": "Leva educação e cultura indígena para comunidades ribeirinhas do Amazonas.",
-    "arrecadado": 1800,
-    "meta": 4000
+    "creditosRecebidos": 1800,
+    "beneficiarios": 75,
+    "imagem":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqWKL7_fkKbDI20PvTZWxYGzzW1NaAtylOvgGY5Uw_XA&s"
   },
   {
     "id": "9",
     "nome": "ONG Sertão Solidário",
-    "categoria": "Segurança Alimentar",
+    "cnpj": "22.333.444/0001-55",
+    "categoria": "Fome",
     "regiao": "Nordeste",
     "descricao": "Combate a fome e promove agricultura sustentável no semiárido pernambucano.",
-    "arrecadado": 2600,
-    "meta": 5000
+    "creditosRecebidos": 2600,
+    "beneficiarios": 210,
+    "imagem":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJuI_YSYvte2CntmMBi0vwfrZIe1FjRVMnqaOguzHoAg&s"
   },
   {
     "id": "10",
     "nome": "ONG Cerrado Vivo",
+    "cnpj": "33.444.555/0001-66",
     "categoria": "Meio Ambiente",
     "regiao": "Centro-Oeste",
     "descricao": "Preservação do bioma Cerrado e apoio a comunidades quilombolas em Goiás.",
-    "arrecadado": 1200,
-    "meta": 3000
+    "creditosRecebidos": 1200,
+    "beneficiarios": 40,
+    "imagem":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPGc9RCIzn11tbiQ5rkHjdrZJn6GQVX0ByJfDyvK4Zxg&s"
   },
   {
     "id": "11",
     "nome": "ONG Pampa Acolhe",
+    "cnpj": "44.555.666/0001-77",
     "categoria": "Assistência Social",
     "regiao": "Sul",
     "descricao": "Acolhimento de famílias em situação de vulnerabilidade no interior do Rio Grande do Sul.",
-    "arrecadado": 2100,
-    "meta": 3500
+    "creditosRecebidos": 2100,
+    "beneficiarios": 130,
+    "imagem":"https://projetopampa.fld.com.br/uploads/pampa-logo-projeto-.png"
   }
 ]

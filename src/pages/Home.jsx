@@ -135,15 +135,16 @@ function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {ongsDestaque.map((ong) => (
             <Card
-              key={ong.id}
-              title={ong.nome}
-              description={ong.descricao}
-              category={`${ong.categoria} · ${ong.regiao}`}
-              arrecadado={ong.arrecadado}
-              meta={ong.meta}
-              actionLabel="Ver ONG"
-              onAction={() => {}}
-            />
+            key={ong.id}
+            image={ong.imagem}
+            title={ong.nome}
+            description={ong.descricao}
+            category={`${ong.categoria} · ${ong.regiao}`}
+            arrecadado={ong.creditosRecebidos}
+            meta={Math.max(ong.creditosRecebidos + 1000, 3000)}
+            actionLabel="Doar créditos"
+            onAction={() => setOngSelecionada(ong)}
+          />
           ))}
         </div>
       </section>

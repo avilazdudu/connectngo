@@ -5,19 +5,10 @@
     "cnpj": "12.345.678/0001-90",
     "categoria": "Assistência Social",
     "regiao": "Sudeste",
-    "descricao": "Apoia famílias em situação de vulnerabilidade social oferecendo cestas básicas, roupas e apoio psicológico.",
+    "descricao": "Apoia famílias em situação de vulnerabilidade social...",
     "creditosRecebidos": 3200,
-    "beneficiarios": 145
-  },
-  {
-    "id": "4",
-    "nome": "ONG Vida Nova",
-    "cnpj": "98.765.432/0001-10",
-    "categoria": "Educação",
-    "regiao": "Sudeste",
-    "descricao": "Oferece reforço escolar e atividades extracurriculares para crianças e adolescentes em situação de risco.",
-    "creditosRecebidos": 1800,
-    "beneficiarios": 90
+    "beneficiarios": 145,
+    "imagem": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHz6GYcMV4SWGt7DitiJgYsbjnt9FVPw4X_pFT4lvOTRHPjm4Gx6R01w0&s=10"
   },
   {
     "id": "7",
@@ -27,7 +18,8 @@
     "regiao": "Centro-Oeste",
     "descricao": "Promove reflorestamento urbano e educação ambiental em comunidades carentes.",
     "creditosRecebidos": 950,
-    "beneficiarios": 60
+    "beneficiarios": 60,
+    "imagem":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmpYDkbzE7COK4HvGYjeS9usm4ONhkq5NqMI8SrLGaJrNblZnt5VYPljgb&s=10"
   },
   {
     "id": "8",
@@ -37,7 +29,8 @@
     "regiao": "Norte",
     "descricao": "Leva educação e cultura indígena para comunidades ribeirinhas do Amazonas.",
     "creditosRecebidos": 1800,
-    "beneficiarios": 75
+    "beneficiarios": 75,
+    "imagem":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqWKL7_fkKbDI20PvTZWxYGzzW1NaAtylOvgGY5Uw_XA&s"
   },
   {
     "id": "9",
@@ -47,7 +40,8 @@
     "regiao": "Nordeste",
     "descricao": "Combate a fome e promove agricultura sustentável no semiárido pernambucano.",
     "creditosRecebidos": 2600,
-    "beneficiarios": 210
+    "beneficiarios": 210,
+    "imagem":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJuI_YSYvte2CntmMBi0vwfrZIe1FjRVMnqaOguzHoAg&s"
   },
   {
     "id": "10",
@@ -57,7 +51,8 @@
     "regiao": "Centro-Oeste",
     "descricao": "Preservação do bioma Cerrado e apoio a comunidades quilombolas em Goiás.",
     "creditosRecebidos": 1200,
-    "beneficiarios": 40
+    "beneficiarios": 40,
+    "imagem":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPGc9RCIzn11tbiQ5rkHjdrZJn6GQVX0ByJfDyvK4Zxg&s"
   },
   {
     "id": "11",
@@ -67,7 +62,8 @@
     "regiao": "Sul",
     "descricao": "Acolhimento de famílias em situação de vulnerabilidade no interior do Rio Grande do Sul.",
     "creditosRecebidos": 2100,
-    "beneficiarios": 130
+    "beneficiarios": 130,
+    "imagem":"https://projetopampa.fld.com.br/uploads/pampa-logo-projeto-.png"
   },
   {
     "id": "12",
@@ -77,7 +73,8 @@
     "regiao": "Sudeste",
     "descricao": "Resgate, castração e adoção responsável de animais em situação de abandono.",
     "creditosRecebidos": 890,
-    "beneficiarios": 320
+    "beneficiarios": 320,
+    "imagem":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6n8JyenPfYO635UaPMUe4hOCaTUoeOgyMMIDqp2VOmw&s=10"
   },
   {
     "id": "13",
@@ -87,6 +84,7 @@
     "regiao": "Norte",
     "descricao": "Leva atendimento médico básico a comunidades ribeirinhas sem acesso a hospitais.",
     "creditosRecebidos": 1500,
-    "beneficiarios": 95
+    "beneficiarios": 95,
+    "imagem":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7g1o7Fxu0tWZlbBzAWSNRR-CCE2oCirRV5DmETa4nvz6ZfheN_T8jIzoO&s=10"
   }
 ]
