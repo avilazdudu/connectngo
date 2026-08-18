@@ -1,14 +1,36 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Navbar, Footer, Button, Card, Badge, MetricCard } from '../components'
 import metricas from '../data/metricas.json'
 import ongsDestaque from '../data/ongsDestaque.json'
+import { supabase } from '../services/supabase'
 
 function Home() {
+  useEffect(() => {
+    async function getEmpresas() {
+    const { data, error } = await supabase
+      .from('empresas')
+      .select('*') 
+
+    if (error) {
+      console.error('Erro ao buscar empresas:', error.message)
+      return
+    }
+
+    console.log('Empresas encontradas:', data)
+
+    data.forEach((empresa) => {
+      console.log(`Empresa: ${empresa.nome} | Créditos: ${empresa.creditos_acumulados}`)
+    })
+  }
+
+  getEmpresas()
+  }, [])
+
   return (
     <>
       <Navbar />
 
-      {/* Hero */}
       <section className="bg-gradient-to-b from-green-50 to-blue-50 px-4 sm:px-6 py-16 sm:py-24">
         <div className="max-w-4xl mx-auto text-center flex flex-col items-center gap-6">
           <Badge variant="success">Conectando quem doa, quem transforma e quem apoia</Badge>
@@ -39,7 +61,6 @@ function Home() {
         </div>
       </section>
 
-      {/* Ciclo Doador -> ONG -> Empresa */}
       <section className="px-4 sm:px-6 py-16 max-w-6xl mx-auto">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4">
           Como funciona o ciclo ConnectNGO
@@ -84,7 +105,6 @@ function Home() {
         </div>
       </section>
 
-      {/* Métricas do Terceiro Setor */}
       <section className="bg-gray-50 px-4 sm:px-6 py-16">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4">
@@ -117,7 +137,6 @@ function Home() {
         </div>
       </section>
 
-      {/* ONGs fora do Sudeste */}
       <section className="px-4 sm:px-6 py-16 max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-8 gap-2">
           <div>
@@ -135,21 +154,20 @@ function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {ongsDestaque.map((ong) => (
             <Card
-            key={ong.id}
-            image={ong.imagem}
-            title={ong.nome}
-            description={ong.descricao}
-            category={`${ong.categoria} · ${ong.regiao}`}
-            arrecadado={ong.creditosRecebidos}
-            meta={Math.max(ong.creditosRecebidos + 1000, 3000)}
-            actionLabel="Doar créditos"
-            onAction={() => setOngSelecionada(ong)}
-          />
+              key={ong.id}
+              image={ong.imagem}
+              title={ong.nome}
+              description={ong.descricao}
+              category={`${ong.categoria} · ${ong.regiao}`}
+              arrecadado={ong.creditosRecebidos}
+              meta={Math.max(ong.creditosRecebidos + 1000, 3000)}
+              actionLabel="Doar créditos"
+              onAction={() => {}}
+            />
           ))}
         </div>
       </section>
 
-      {/* CTA final */}
       <section className="bg-gradient-to-r from-green-600 to-blue-600 px-4 sm:px-6 py-16">
         <div className="max-w-3xl mx-auto text-center flex flex-col items-center gap-6">
           <h2 className="text-2xl sm:text-3xl font-bold text-white">

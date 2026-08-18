@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTransacoes } from '../context/TransacoesContext'
 
 function EmpresaProdutos() {
+  
   const { user } = useAuth()
   const { empresas, adicionarProduto } = useTransacoes()
 
