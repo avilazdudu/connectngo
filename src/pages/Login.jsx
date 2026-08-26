@@ -10,26 +10,52 @@ const dashboardPorTipo = {
 }
 
 function Login() {
-  const { login } = useAuth()
+  const { login, loginAs } = useAuth()
   const navigate = useNavigate()
 
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setErro('')
+    setSubmitting(true)
 
-    const resultado = login(email)
+    try {
+      const resultado = await login(email.trim().toLowerCase())
 
-    if (!resultado.success) {
-      setErro(resultado.message)
-      return
+      if (!resultado.success) {
+        setErro(resultado.message)
+        return
+      }
+
+      const destino = dashboardPorTipo[resultado.user.tipo] || '/'
+      navigate(destino)
+    } catch (err) {
+      setErro('Ocorreu um erro ao tentar entrar. Tente novamente.')
+    } finally {
+      setSubmitting(false)
     }
+  }
 
-    const destino = dashboardPorTipo[resultado.user.tipo] || '/'
-    navigate(destino)
+  async function handleQuickLogin(tipo) {
+    setErro('')
+    setSubmitting(true)
+    try {
+      const resultado = await loginAs(tipo)
+      if (!resultado.success) {
+        setErro(resultado.message)
+        return
+      }
+      const destino = dashboardPorTipo[resultado.user.tipo] || '/'
+      navigate(destino)
+    } catch (err) {
+      setErro(`Erro ao entrar como ${tipo}.`)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -53,7 +79,7 @@ function Login() {
               name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="seuemail@exemplo.com"
+              placeholder="ex: maria@example.com"
               required
             />
 
@@ -64,17 +90,55 @@ function Login() {
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               placeholder="••••••••"
-              required
             />
 
             {erro && (
               <p className="text-sm text-red-500 -mt-2">{erro}</p>
             )}
 
-            <Button type="submit" variant="primary" size="lg" fullWidth>
-              Entrar
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              disabled={submitting}
+            >
+              {submitting ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
+
+          {/* Atalhos para testar contas cadastradas */}
+          <div className="mt-6 pt-4 border-t border-gray-100">
+            <p className="text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide text-center">
+              Login rápido de teste
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('doador')}
+                disabled={submitting}
+                className="text-xs py-1.5 px-2 bg-green-50 text-green-700 hover:bg-green-100 rounded font-medium transition-colors"
+              >
+                Como Doador
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('ong')}
+                disabled={submitting}
+                className="text-xs py-1.5 px-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded font-medium transition-colors"
+              >
+                Como ONG
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('empresa')}
+                disabled={submitting}
+                className="text-xs py-1.5 px-2 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded font-medium transition-colors"
+              >
+                Como Empresa
+              </button>
+            </div>
+          </div>
 
           <p className="text-sm text-gray-500 text-center mt-6">
             Ainda não tem conta?{' '}
@@ -82,12 +146,6 @@ function Login() {
               Cadastre-se
             </Link>
           </p>
-
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
-            <strong>Ambiente de testes:</strong> use um e-mail já mockado em
-            <code className="mx-1 bg-white px-1 rounded">usuarios.json</code>
-            (ex: maria@example.com). A senha não é validada.
-          </div>
         </div>
       </section>
 

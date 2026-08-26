@@ -33,6 +33,7 @@ function Cadastro() {
 
   const [tipo, setTipo] = useState('doador')
   const [erro, setErro] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const [form, setForm] = useState({
     nome: '',
@@ -48,34 +49,41 @@ function Cadastro() {
     setForm((prev) => ({ ...prev, [campo]: valor }))
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setErro('')
+    setSubmitting(true)
 
-    const dados = {
-      nome: form.nome,
-      email: form.email,
-      tipo,
-      ...(tipo === 'ong' && {
-        cnpj: form.cnpj,
-        categoria: form.categoria,
-        descricao: form.descricao,
-      }),
-      ...(tipo === 'empresa' && {
-        cnpj: form.cnpj,
-        segmento: form.segmento,
-      }),
+    try {
+      const dados = {
+        nome: form.nome.trim(),
+        email: form.email.trim().toLowerCase(),
+        tipo,
+        ...(tipo === 'ong' && {
+          cnpj: form.cnpj.trim(),
+          categoria: form.categoria,
+          descricao: form.descricao.trim(),
+        }),
+        ...(tipo === 'empresa' && {
+          cnpj: form.cnpj.trim(),
+          segmento: form.segmento,
+        }),
+      }
+
+      const resultado = await register(dados)
+
+      if (!resultado.success) {
+        setErro(resultado.message)
+        return
+      }
+
+      const destino = dashboardPorTipo[resultado.user.tipo] || '/'
+      navigate(destino)
+    } catch (err) {
+      setErro('Erro ao processar cadastro. Verifique a conexão e tente novamente.')
+    } finally {
+      setSubmitting(false)
     }
-
-    const resultado = register(dados)
-
-    if (!resultado.success) {
-      setErro(resultado.message)
-      return
-    }
-
-    const destino = dashboardPorTipo[resultado.user.tipo] || '/'
-    navigate(destino)
   }
 
   return (
@@ -126,7 +134,6 @@ function Cadastro() {
               value={form.senha}
               onChange={(e) => handleChange('senha', e.target.value)}
               placeholder="••••••••"
-              required
             />
 
             {/* Campos institucionais: ONG */}
@@ -152,7 +159,7 @@ function Cadastro() {
                   <select
                     value={form.categoria}
                     onChange={(e) => handleChange('categoria', e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800 bg-white"
                   >
                     {categoriasOng.map((cat) => (
                       <option key={cat} value={cat}>
@@ -171,7 +178,7 @@ function Cadastro() {
                     onChange={(e) => handleChange('descricao', e.target.value)}
                     placeholder="Descreva a missão e o propósito da organização"
                     rows={3}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800 placeholder-gray-400 resize-none"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800 placeholder-gray-400 resize-none bg-white"
                     required
                   />
                 </div>
@@ -201,7 +208,7 @@ function Cadastro() {
                   <select
                     value={form.segmento}
                     onChange={(e) => handleChange('segmento', e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 bg-white"
                   >
                     {segmentosEmpresa.map((seg) => (
                       <option key={seg} value={seg}>
@@ -215,8 +222,14 @@ function Cadastro() {
 
             {erro && <p className="text-sm text-red-500 -mt-2">{erro}</p>}
 
-            <Button type="submit" variant="primary" size="lg" fullWidth>
-              Criar conta
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              disabled={submitting}
+            >
+              {submitting ? 'Cadastrando...' : 'Criar conta'}
             </Button>
           </form>
 

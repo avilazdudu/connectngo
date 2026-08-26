@@ -1,24 +1,73 @@
-import { useState, useMemo } from 'react'
-import { Navbar, Footer, Card, FilterSelect, DoacaoModal, Badge, Button } from '../components'
+import { useState, useMemo, useEffect } from 'react'
+import { Navbar, Footer, Card, FilterSelect, DoacaoModal, Badge } from '../components'
 import { useAuth } from '../context/AuthContext'
-import { useTransacoes } from '../context/TransacoesContext'
+import { supabase } from '../services/supabase'
 
 const categorias = ['Todas', 'Fome', 'Saúde', 'Educação', 'Animais', 'Meio Ambiente', 'Assistência Social']
 const regioes = ['Todas', 'Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul']
 
 function DoadorOngs() {
-  const { user } = useAuth()
-  const { ongs, doar, getSaldoAtual } = useTransacoes()
+  const { user, refreshUser } = useAuth()
 
+  const [ongs, setOngs] = useState([])
+  const [loading, setLoading] = useState(true)
   const [busca, setBusca] = useState('')
   const [categoria, setCategoria] = useState('Todas')
   const [regiao, setRegiao] = useState('Todas')
   const [apenasForaSudeste, setApenasForaSudeste] = useState(false)
   const [ongSelecionada, setOngSelecionada] = useState(null)
   const [mensagemSucesso, setMensagemSucesso] = useState('')
+  const [erroDoacao, setErroDoacao] = useState('')
 
-  const saldo = getSaldoAtual(user)
+  const saldo = user?.saldoCreditos ?? 0
 
+  // 1. Carrega todas as ONGs e seus nomes do banco
+  async function carregarOngs() {
+    setLoading(true)
+    try {
+      const { data: ongsData, error: errOngs } = await supabase
+        .from('ongs')
+        .select('*')
+
+      if (errOngs) throw errOngs
+
+      if (ongsData && ongsData.length > 0) {
+        const ids = ongsData.map((o) => o.id)
+        const { data: usuariosData, error: errUsers } = await supabase
+          .from('usuarios')
+          .select('id, nome, email')
+          .in('id', ids)
+
+        if (errUsers) throw errUsers
+
+        const mapaNomes = new Map(usuariosData?.map((u) => [u.id, u.nome]) || [])
+
+        const formatadas = ongsData.map((ong) => ({
+          id: ong.id,
+          nome: mapaNomes.get(ong.id) || 'ONG Parceira',
+          cnpj: ong.cnpj,
+          categoria: ong.categoria,
+          regiao: ong.regiao,
+          descricao: ong.descricao,
+          creditosRecebidos: Number(ong.creditos_recebidos) || 0,
+          beneficiarios: ong.beneficiarios,
+          imagem: ong.imagem,
+        }))
+
+        setOngs(formatadas)
+      }
+    } catch (err) {
+      console.error('Erro ao carregar lista de ONGs:', err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    carregarOngs()
+  }, [])
+
+  // 2. Filtros de busca
   const ongsFiltradas = useMemo(() => {
     return ongs.filter((ong) => {
       const combinaBusca = ong.nome.toLowerCase().includes(busca.toLowerCase())
@@ -29,11 +78,74 @@ function DoadorOngs() {
     })
   }, [ongs, busca, categoria, regiao, apenasForaSudeste])
 
-  function handleConfirmarDoacao(valor) {
-    doar({ doadorId: user.id, ongId: ongSelecionada.id, valor })
-    setMensagemSucesso(`Doação de ${valor} créditos enviada para ${ongSelecionada.nome}!`)
-    setOngSelecionada(null)
-    setTimeout(() => setMensagemSucesso(''), 4000)
+  // 3. Processamento e gravação da doação no Supabase
+  async function handleConfirmarDoacao(valor) {
+    const valorNumerico = Number(valor)
+    setErroDoacao('')
+
+    if (!user?.id) {
+      setErroDoacao('Você precisa estar logado para doar.')
+      return
+    }
+
+    if (valorNumerico <= 0) {
+      setErroDoacao('Informe um valor válido.')
+      return
+    }
+
+    if (saldo < valorNumerico) {
+      setErroDoacao('Saldo de créditos insuficiente.')
+      return
+    }
+
+    try {
+      // 1. Gera ID único e insere na tabela transacoes
+      const idTransacao = 't_' + Date.now()
+      const dataHoje = new Date().toISOString().split('T')[0]
+
+      const { error: errTransacao } = await supabase
+        .from('transacoes')
+        .insert({
+          id: idTransacao,
+          origem: user.id,
+          destino_usuario_id: ongSelecionada.id,
+          valor: valorNumerico,
+          tipo: 'doacao',
+          data: dataHoje,
+        })
+
+      if (errTransacao) throw errTransacao
+
+      // 2. Debita do usuário doador
+      const { error: errDoador } = await supabase
+        .from('usuarios')
+        .update({ saldo_creditos: saldo - valorNumerico })
+        .eq('id', user.id)
+
+      if (errDoador) throw errDoador
+
+      // 3. Incrementa na tabela ongs
+      const novosCreditos = ongSelecionada.creditosRecebidos + valorNumerico
+      const { error: errOng } = await supabase
+        .from('ongs')
+        .update({ creditos_recebidos: novosCreditos })
+        .eq('id', ongSelecionada.id)
+
+      if (errOng) throw errOng
+
+      // 4. Feedback e sincronização
+      setMensagemSucesso(`Doação de ${valorNumerico} créditos enviada com sucesso para ${ongSelecionada.nome}!`)
+      setOngSelecionada(null)
+      
+      // Atualiza o estado global de autenticação e a lista na tela
+      if (refreshUser) await refreshUser()
+      await carregarOngs()
+
+      setTimeout(() => setMensagemSucesso(''), 5000)
+    } catch (err) {
+      console.error('Erro ao realizar doação:', err.message)
+      setErroDoacao(`Não foi possível concluir a doação: ${err.message}`)
+    }
   }
 
   return (
@@ -57,7 +169,13 @@ function DoadorOngs() {
           </div>
         )}
 
-        {/* Filtros (seu código original, sem mudanças) */}
+        {erroDoacao && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            {erroDoacao}
+          </div>
+        )}
+
+        {/* Filtros */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-8">
           <div className="flex flex-col sm:flex-row gap-3 sm:items-end mb-3">
             <div className="flex-1">
@@ -108,7 +226,12 @@ function DoadorOngs() {
           </div>
         </div>
 
-        {ongsFiltradas.length === 0 ? (
+        {/* Listagem */}
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <p className="text-gray-500 font-medium">Carregando ONGs...</p>
+          </div>
+        ) : ongsFiltradas.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-500">
             Nenhuma ONG encontrada com esses filtros.
           </div>
@@ -129,7 +252,6 @@ function DoadorOngs() {
             ))}
           </div>
         )}
-
       </section>
 
       {ongSelecionada && (

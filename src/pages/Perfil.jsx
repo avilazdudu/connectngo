@@ -1,43 +1,169 @@
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Navbar, Footer, Badge, Button, MetricCard, TransparenciaItem, ProgressBar } from '../components'
-import { useTransacoes } from '../context/TransacoesContext'
-import usuariosData from '../data/usuarios.json'
+import { supabase } from '../services/supabase'
 
 function Perfil() {
   const { id } = useParams()
-  const { ongs, getHistoricoPorUsuario, getProdutoEEmpresa } = useTransacoes()
+  const ongId = Number(id)
 
-  const ong = ongs.find((o) => o.id === id)
+  const [loading, setLoading] = useState(true)
+  const [ong, setOng] = useState(null)
+  const [transacoes, setTransacoes] = useState([])
+  const [mapaNomes, setMapaNomes] = useState(new Map())
+  const [mapaProdutos, setMapaProdutos] = useState(new Map())
 
-  const historico = getHistoricoPorUsuario(ong.id)
-  const doacoesRecebidas = historico.filter((t) => t.tipo === 'doacao')
-  const resgatesFeitos = historico.filter((t) => t.tipo === 'resgate')
+  useEffect(() => {
+    async function carregarPerfil() {
+      if (!ongId) return
+      setLoading(true)
 
-  const totalDoado = doacoesRecebidas.reduce((soma, t) => soma + t.valor, 0)
-  const totalResgatado = resgatesFeitos.reduce((soma, t) => soma + t.valor, 0)
-  const doadoresUnicos = new Set(doacoesRecebidas.map((t) => t.origem)).size
+      try {
+        // 1. Busca dados da ONG e nome na tabela usuarios
+        const [resOng, resUsuario] = await Promise.all([
+          supabase.from('ongs').select('*').eq('id', ongId).maybeSingle(),
+          supabase.from('usuarios').select('id, nome, email').eq('id', ongId).maybeSingle(),
+        ])
 
-  const gastosPorEmpresa = resgatesFeitos.reduce((acc, t) => {
-    const info = getProdutoEEmpresa(t.destino)
-    const chave = info ? info.empresa.nome : 'Desconhecido'
-    acc[chave] = (acc[chave] || 0) + t.valor
-    return acc
-  }, {})
+        if (resOng.data) {
+          setOng({
+            ...resOng.data,
+            nome: resUsuario.data?.nome || 'ONG',
+            email: resUsuario.data?.email || '',
+          })
+        }
 
-  const gastosArray = Object.entries(gastosPorEmpresa)
-    .map(([empresa, valor]) => ({ empresa, valor }))
-    .sort((a, b) => b.valor - a.valor)
+        // 2. Busca movimentações onde a ONG é destino (doação) ou origem (resgate/repasse)
+        const { data: transacoesData } = await supabase
+          .from('transacoes')
+          .select('*')
+          .or(`destino_usuario_id.eq.${ongId},origem.eq.${ongId}`)
+          .order('data', { ascending: false })
 
+        const lista = transacoesData || []
+        setTransacoes(lista)
+
+        // 3. Coleta dados complementares para nomes de doadores e empresas parceiras
+        const doadoresIds = [...new Set(lista.filter((t) => t.tipo === 'doacao' && t.origem).map((t) => t.origem))]
+        const produtosIds = [...new Set(lista.filter((t) => t.destino_produto_id).map((t) => t.destino_produto_id))]
+
+        const [resDoadores, resProds] = await Promise.all([
+          doadoresIds.length > 0 ? supabase.from('usuarios').select('id, nome').in('id', doadoresIds) : { data: [] },
+          produtosIds.length > 0
+            ? supabase.from('produtos').select('id, nome, empresa_id, empresas:empresa_id(usuarios:id(nome))').in('id', produtosIds)
+            : { data: [] },
+        ])
+
+        const nomesMap = new Map(resDoadores.data?.map((u) => [u.id, u.nome]) || [])
+        setMapaNomes(nomesMap)
+
+        const prodsMap = new Map()
+        resProds.data?.forEach((p) => {
+          prodsMap.set(p.id, {
+            nomeProduto: p.nome,
+            nomeEmpresa: p.empresas?.usuarios?.nome || 'Empresa Parceira',
+          })
+        })
+        setMapaProdutos(prodsMap)
+      } catch (err) {
+        console.error('Erro ao carregar perfil da ONG:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    carregarPerfil()
+  }, [ongId])
+
+  // Métricas calculadas
+  const doacoesRecebidas = useMemo(() => transacoes.filter((t) => t.tipo === 'doacao' && t.destino_usuario_id === ongId), [transacoes, ongId])
+  const resgatesFeitos = useMemo(() => transacoes.filter((t) => t.tipo === 'resgate' || t.tipo === 'repasse'), [transacoes])
+
+  const totalDoado = useMemo(() => doacoesRecebidas.reduce((soma, t) => soma + (Number(t.valor) || 0), 0), [doacoesRecebidas])
+  const totalResgatado = useMemo(() => resgatesFeitos.reduce((soma, t) => soma + (Number(t.valor) || 0), 0), [resgatesFeitos])
+  const doadoresUnicos = useMemo(() => new Set(doacoesRecebidas.map((t) => t.origem)).size, [doacoesRecebidas])
+
+  // Distribuição de gastos por parceiro
+  const gastosArray = useMemo(() => {
+    const acc = {}
+    resgatesFeitos.forEach((t) => {
+      const prodInfo = mapaProdutos.get(t.destino_produto_id)
+      const empresa = prodInfo?.nomeEmpresa || 'Empresas Parceiras'
+      acc[empresa] = (acc[empresa] || 0) + (Number(t.valor) || 0)
+    })
+    return Object.entries(acc)
+      .map(([empresa, valor]) => ({ empresa, valor }))
+      .sort((a, b) => b.valor - a.valor)
+  }, [resgatesFeitos, mapaProdutos])
+
+  // Linha do tempo formatada
+  const linhaDoTempo = useMemo(() => {
+    return transacoes.map((t) => {
+      const isDoacao = t.tipo === 'doacao'
+      const nomeOrigem = mapaNomes.get(t.origem) || 'Doador'
+      const prodInfo = mapaProdutos.get(t.destino_produto_id)
+      
+      return {
+        id: t.id,
+        tipo: isDoacao ? 'doacao' : 'resgate',
+        titulo: isDoacao
+          ? `Doação recebida de ${nomeOrigem}`
+          : `Resgate: ${prodInfo?.nomeProduto || 'Produto/Serviço'} (${prodInfo?.nomeEmpresa || 'Empresa'})`,
+        valor: Number(t.valor),
+        data: t.data,
+      }
+    })
+  }, [transacoes, mapaNomes, mapaProdutos])
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <p className="text-gray-500 font-medium">Carregando perfil...</p>
+        </div>
+        <Footer />
+      </>
+    )
+  }
 
   return (
     <>
       <Navbar />
 
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+      {/* Cabeçalho da ONG */}
+      <section className="bg-gradient-to-b from-green-50 to-white px-4 sm:px-6 py-10 border-b border-gray-100">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center gap-6">
+          <img
+            src={ong?.imagem || 'https://via.placeholder.com/150'}
+            alt={ong?.nome}
+            className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl object-cover border-2 border-white shadow-md"
+          />
+          <div className="text-center sm:text-left flex-1">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
+              <Badge variant="success">{ong?.categoria || 'Assistência Social'}</Badge>
+              <Badge variant="info">Região {ong?.regiao || 'Brasil'}</Badge>
+            </div>
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-800">{ong?.nome}</h1>
+            <p className="text-gray-600 mt-2 text-sm sm:text-base leading-relaxed">{ong?.descricao}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Métricas */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <MetricCard value={ong?.creditos_recebidos ?? totalDoado} label="Créditos Arrecadados" />
+          <MetricCard value={totalResgatado} label="Créditos Investidos" />
+          <MetricCard value={doadoresUnicos} label="Doadores Apoiadores" />
+          <MetricCard value={ong?.beneficiarios ?? 0} label="Pessoas Atendidas" />
+        </div>
+      </section>
+
+      {/* Relatório de Transparência */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-800">
-            Relatório de transparência
-          </h2>
+          <h2 className="text-xl font-bold text-gray-800">Relatório de transparência</h2>
           <Badge variant="neutral">{linhaDoTempo.length} movimentações</Badge>
         </div>
         <p className="text-sm text-gray-500 mb-6">
@@ -46,14 +172,10 @@ function Perfil() {
 
         {gastosArray.length > 0 && (
           <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">
-              Destino dos créditos investidos
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Destino dos créditos investidos</h3>
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col gap-4">
               {gastosArray.map(({ empresa, valor }) => {
-                const percentual = totalResgatado > 0
-                  ? Math.round((valor / totalResgatado) * 100)
-                  : 0
+                const percentual = totalResgatado > 0 ? Math.round((valor / totalResgatado) * 100) : 0
                 return (
                   <div key={empresa}>
                     <div className="flex justify-between text-sm mb-1">
@@ -62,11 +184,7 @@ function Perfil() {
                         {valor} créditos ({percentual}%)
                       </span>
                     </div>
-                    <ProgressBar
-                      value={valor}
-                      max={totalResgatado}
-                      showPercentage={false}
-                    />
+                    <ProgressBar value={valor} max={totalResgatado} showPercentage={false} />
                   </div>
                 )
               })}
@@ -104,6 +222,7 @@ function Perfil() {
         </div>
       </section>
 
+      <Footer />
     </>
   )
 }
