@@ -11,12 +11,11 @@ function Home() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-
     async function carregarDadosHome() {
       setLoading(true)
 
       try {
-        // 1. Buscar métricas da plataforma
+        // 1. Buscar métricas gerais da plataforma
         const { data: dataMetricas, error: erroMetricas } = await supabase
           .from('metricas_plataforma')
           .select('*')
@@ -29,7 +28,7 @@ function Home() {
           setMetricas(dataMetricas)
         }
 
-        // 2. Buscar ONGs em destaque
+        // 2. Buscar ONGs em destaque cadastradas
         const { data: destaques, error: erroDestaques } = await supabase
           .from('ongs_destaque')
           .select('ong_id, ordem')
@@ -40,30 +39,34 @@ function Home() {
         } else if (destaques && destaques.length > 0) {
           const ongIds = destaques.map((d) => d.ong_id)
 
-          // Busca dados da tabela ongs e nomes da tabela usuarios
-          const [resOngs, resUsuarios] = await Promise.all([
-            supabase.from('ongs').select('*').in('id', ongIds),
-            supabase.from('usuarios').select('id, nome').in('id', ongIds),
-          ])
+          // 3. Busca direta na View unificada (já traz o nome da ONG junto aos dados)
+          const { data: ongsData, error: erroOngs } = await supabase
+            .from('vw_ongs_completas')
+            .select('*')
+            .in('id', ongIds)
 
-          if (resOngs.data && resUsuarios.data) {
-            const mapaOngs = new Map(resOngs.data.map((o) => [o.id, o]))
-            const mapaNomes = new Map(resUsuarios.data.map((u) => [u.id, u.nome]))
+          if (erroOngs) {
+            console.error('Erro ao buscar dados das ONGs:', erroOngs.message)
+          } else if (ongsData) {
+            // Mapeia garantindo a ordem definida na tabela ongs_destaque
+            const mapaOngs = new Map(ongsData.map((o) => [o.id, o]))
 
-            const cardsFormatados = destaques.map((item) => {
-              const ong = mapaOngs.get(item.ong_id)
-              const nome = mapaNomes.get(item.ong_id) || 'ONG Parceira'
+            const cardsFormatados = destaques
+              .map((item) => {
+                const ong = mapaOngs.get(item.ong_id)
+                if (!ong) return null
 
-              return {
-                id: item.ong_id,
-                nome: nome,
-                imagem: ong?.imagem || 'https://via.placeholder.com/300x200',
-                descricao: ong?.descricao || '',
-                categoria: ong?.categoria || 'Geral',
-                regiao: ong?.regiao || 'Brasil',
-                creditosRecebidos: ong?.creditos_recebidos || 0,
-              }
-            })
+                return {
+                  id: ong.id,
+                  nome: ong.nome || 'ONG Parceira',
+                  imagem: ong.imagem || 'https://via.placeholder.com/300x200',
+                  descricao: ong.descricao || '',
+                  categoria: ong.categoria || 'Geral',
+                  regiao: ong.regiao || 'Brasil',
+                  creditosRecebidos: ong.creditos_recebidos || 0,
+                }
+              })
+              .filter(Boolean)
 
             setOngsDestaque(cardsFormatados)
           }

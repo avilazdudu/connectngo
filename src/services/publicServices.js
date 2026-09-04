@@ -1,54 +1,29 @@
-import { supabase } from './supabase'
+import { supabase } from './supabase';
+
+// Busca ONGs completas utilizando a View criada no Supabase
+export async function getOngs() {
+  const { data, error } = await supabase
+    .from('vw_ongs_completas')
+    .select('*')
+    .order('nome', { ascending: true });
+
+  if (error) {
+    console.error('Erro ao buscar ONGs do Supabase:', error);
+    throw error;
+  }
+  return data;
+}
 
 // Busca as métricas gerais da plataforma
-export async function getMetricasPlataforma() {
+export async function getMetricas() {
   const { data, error } = await supabase
     .from('metricas_plataforma')
     .select('*')
-    .single()
+    .single();
 
-  if (error) throw error
-  return {
-    ongsAtivas: data.ongs_ativas,
-    impactoEconomicoBilhoes: data.impacto_economico_bilhoes,
-    empregosGerados: data.empregos_gerados,
-    estadosAtendidos: data.estados_atendidos,
+  if (error) {
+    console.error('Erro ao buscar métricas:', error);
+    throw error;
   }
-}
-
-// Busca as ONGs em destaque fazendo join com a tabela usuarios (para pegar o nome)
-export async function getOngsDestaque() {
-  const { data, error } = await supabase
-    .from('ongs_destaque')
-    .select(`
-      ordem,
-      ongs:ong_id (
-        id,
-        cnpj,
-        categoria,
-        regiao,
-        descricao,
-        creditos_recebidos,
-        beneficiarios,
-        imagem,
-        usuario:usuarios!id (
-          nome
-        )
-      )
-    `)
-    .order('ordem', { ascending: true })
-
-  if (error) throw error
-
-  return data.map(item => ({
-    id: item.ongs.id,
-    nome: item.ongs.usuario?.nome || 'ONG',
-    cnpj: item.ongs.cnpj,
-    categoria: item.ongs.categoria,
-    regiao: item.ongs.regiao,
-    descricao: item.ongs.descricao,
-    creditosRecebidos: item.ongs.creditos_recebidos,
-    beneficiarios: item.ongs.beneficiarios,
-    imagem: item.ongs.imagem,
-  }))
+  return data;
 }

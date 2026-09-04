@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Navbar, Footer, Card, FilterSelect, DoacaoModal, Badge } from '../components'
+import { Navbar, Footer, Card, FilterSelect, Badge } from '../components'
+import DoacaoModal from '../components/DoacaoModal'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabase'
 
@@ -19,32 +20,24 @@ function DoadorOngs() {
   const [mensagemSucesso, setMensagemSucesso] = useState('')
   const [erroDoacao, setErroDoacao] = useState('')
 
-  const saldo = user?.saldoCreditos ?? 0
+  // Garante a leitura correta do saldo independente do formato (Supabase snake_case ou mock camelCase)
+  const saldo = user?.saldo_creditos ?? user?.saldoCreditos ?? 0
 
-  // 1. Carrega todas as ONGs e seus nomes do banco
+  // 1. Carrega as ONGs diretamente da View unificada do banco
   async function carregarOngs() {
     setLoading(true)
     try {
       const { data: ongsData, error: errOngs } = await supabase
-        .from('ongs')
+        .from('vw_ongs_completas')
         .select('*')
+        .order('nome', { ascending: true })
 
       if (errOngs) throw errOngs
 
-      if (ongsData && ongsData.length > 0) {
-        const ids = ongsData.map((o) => o.id)
-        const { data: usuariosData, error: errUsers } = await supabase
-          .from('usuarios')
-          .select('id, nome, email')
-          .in('id', ids)
-
-        if (errUsers) throw errUsers
-
-        const mapaNomes = new Map(usuariosData?.map((u) => [u.id, u.nome]) || [])
-
+      if (ongsData) {
         const formatadas = ongsData.map((ong) => ({
           id: ong.id,
-          nome: mapaNomes.get(ong.id) || 'ONG Parceira',
+          nome: ong.nome || 'ONG Parceira',
           cnpj: ong.cnpj,
           categoria: ong.categoria,
           regiao: ong.regiao,
@@ -67,7 +60,7 @@ function DoadorOngs() {
     carregarOngs()
   }, [])
 
-  // 2. Filtros de busca
+  // 2. Filtros de busca em memória
   const ongsFiltradas = useMemo(() => {
     return ongs.filter((ong) => {
       const combinaBusca = ong.nome.toLowerCase().includes(busca.toLowerCase())
@@ -99,10 +92,11 @@ function DoadorOngs() {
     }
 
     try {
-      // 1. Gera ID único e insere na tabela transacoes
+      // Cria ID e data da transação
       const idTransacao = 't_' + Date.now()
       const dataHoje = new Date().toISOString().split('T')[0]
 
+      // 3.1 Insere a transação na tabela
       const { error: errTransacao } = await supabase
         .from('transacoes')
         .insert({
@@ -116,7 +110,7 @@ function DoadorOngs() {
 
       if (errTransacao) throw errTransacao
 
-      // 2. Debita do usuário doador
+      // 3.2 Debita o saldo do doador
       const { error: errDoador } = await supabase
         .from('usuarios')
         .update({ saldo_creditos: saldo - valorNumerico })
@@ -124,7 +118,7 @@ function DoadorOngs() {
 
       if (errDoador) throw errDoador
 
-      // 3. Incrementa na tabela ongs
+      // 3.3 Incrementa os créditos na tabela da ONG
       const novosCreditos = ongSelecionada.creditosRecebidos + valorNumerico
       const { error: errOng } = await supabase
         .from('ongs')
@@ -133,11 +127,10 @@ function DoadorOngs() {
 
       if (errOng) throw errOng
 
-      // 4. Feedback e sincronização
+      // 3.4 Sucesso e atualização de dados
       setMensagemSucesso(`Doação de ${valorNumerico} créditos enviada com sucesso para ${ongSelecionada.nome}!`)
       setOngSelecionada(null)
-      
-      // Atualiza o estado global de autenticação e a lista na tela
+
       if (refreshUser) await refreshUser()
       await carregarOngs()
 
@@ -152,7 +145,6 @@ function DoadorOngs() {
     <>
       <Navbar />
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-
         <div className="mb-6">
           <Badge variant="info" className="mb-2">Vitrine de ONGs</Badge>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
