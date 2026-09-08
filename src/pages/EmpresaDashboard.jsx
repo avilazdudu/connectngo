@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Navbar, Footer, Badge, Input, Button } from '../components'
 import { useAuth } from '../context/AuthContext'
-import { useTransacoes } from '../context/TransacoesContext'
+import { supabase } from '../services/supabase'
 
 function EmpresaProdutos() {
-  
   const { user } = useAuth()
-  const { empresas, adicionarProduto } = useTransacoes()
+  const empresaId = user?.id ? Number(user.id) : null
 
-  const empresa = empresas.find((e) => e.id === user?.id)
+  const [produtos, setProdutos] = useState([])
+  const [loading, setLoading] = useState(true)
 
   const [nome, setNome] = useState('')
   const [descricao, setDescricao] = useState('')
@@ -16,7 +16,41 @@ function EmpresaProdutos() {
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState('')
 
-  function handleSubmit(e) {
+  const carregarProdutos = useCallback(async () => {
+    if (!empresaId) {
+      setLoading(false)
+      return
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('produtos')
+        .select('*')
+        .eq('empresa_id', empresaId)
+        .order('criado_em', { ascending: false })
+
+      if (error) throw error
+
+      const formatados = (data || []).map((item) => ({
+        id: item.id,
+        nome: item.nome,
+        descricao: item.descricao,
+        creditosNecessarios: Number(item.creditos_necessarios) || 0,
+      }))
+
+      setProdutos(formatados)
+    } catch (err) {
+      console.error('Erro ao carregar produtos:', err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [empresaId])
+
+  useEffect(() => {
+    carregarProdutos()
+  }, [carregarProdutos])
+
+  async function handleSubmit(e) {
     e.preventDefault()
     setErro('')
 
@@ -25,19 +59,33 @@ function EmpresaProdutos() {
       return
     }
 
-    adicionarProduto({
-      empresaId: user.id,
-      nome,
-      descricao,
-      creditosNecessarios: creditos,
-    })
+    if (!empresaId) {
+      setErro('Sessão inválida: faça login como empresa para cadastrar produtos.')
+      return
+    }
 
-    setSucesso(`Produto "${nome}" cadastrado com sucesso!`)
-    setNome('')
-    setDescricao('')
-    setCreditos('')
+    try {
+      const { error } = await supabase.from('produtos').insert({
+        id: 'p_' + Date.now(),
+        empresa_id: empresaId,
+        nome,
+        descricao: descricao || null,
+        creditos_necessarios: Number(creditos),
+      })
 
-    setTimeout(() => setSucesso(''), 4000)
+      if (error) throw error
+
+      setSucesso(`Produto "${nome}" cadastrado com sucesso!`)
+      setNome('')
+      setDescricao('')
+      setCreditos('')
+
+      await carregarProdutos()
+      setTimeout(() => setSucesso(''), 4000)
+    } catch (err) {
+      console.error('Erro ao cadastrar produto:', err.message)
+      setErro(`Não foi possível cadastrar o produto: ${err.message}`)
+    }
   }
 
   return (
@@ -107,16 +155,20 @@ function EmpresaProdutos() {
           {/* Lista de produtos cadastrados */}
           <div className="lg:col-span-2">
             <h2 className="font-bold text-gray-800 mb-4">
-              Produtos cadastrados ({empresa?.produtos.length ?? 0})
+              Produtos cadastrados ({produtos.length})
             </h2>
 
-            {(!empresa || empresa.produtos.length === 0) ? (
+            {loading ? (
+              <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400">
+                Carregando catálogo...
+              </div>
+            ) : produtos.length === 0 ? (
               <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-500">
                 Nenhum produto cadastrado ainda.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {empresa.produtos.map((produto) => (
+                {produtos.map((produto) => (
                   <div
                     key={produto.id}
                     className="bg-white rounded-xl border border-gray-100 shadow-sm p-4"
