@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Navbar, Footer, Card, FilterSelect, DoacaoModal, Badge } from '../components'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabase'
@@ -8,10 +9,11 @@ const regioes = ['Todas', 'Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul']
 
 function DoadorOngs() {
   const { user, refreshUser } = useAuth()
+  const [searchParams] = useSearchParams()
 
   const [ongs, setOngs] = useState([])
   const [loading, setLoading] = useState(true)
-  const [busca, setBusca] = useState('')
+  const [busca, setBusca] = useState(searchParams.get('busca') || '')
   const [categoria, setCategoria] = useState('Todas')
   const [regiao, setRegiao] = useState('Todas')
   const [apenasForaSudeste, setApenasForaSudeste] = useState(false)

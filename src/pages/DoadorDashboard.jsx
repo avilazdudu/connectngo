@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Navbar, Footer, Badge, Button } from '../components'
+import { Navbar, Footer, Badge, Button, BadgesDoador } from '../components'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabase'
 
@@ -9,7 +9,6 @@ function DoadorDashboard() {
 
   const [loading, setLoading] = useState(true)
   const [transacoes, setTransacoes] = useState([])
-  const [badges, setBadges] = useState([])
   const [mapaNomes, setMapaNomes] = useState(new Map())
 
   useEffect(() => {
@@ -46,14 +45,13 @@ function DoadorDashboard() {
           ),
         ]
 
-        const [resUsuarios, resProdutos, resBadges] = await Promise.all([
+        const [resUsuarios, resProdutos] = await Promise.all([
           ongIds.length > 0
             ? supabase.from('usuarios').select('id, nome').in('id', ongIds)
             : { data: [] },
           produtoIds.length > 0
             ? supabase.from('produtos').select('id, nome').in('id', produtoIds)
             : { data: [] },
-          supabase.from('badges').select('*'),
         ])
 
         // Cria o mapa de identificadores para nomes legíveis
@@ -61,10 +59,6 @@ function DoadorDashboard() {
         resUsuarios.data?.forEach((u) => nomesMap.set(`user_${u.id}`, u.nome))
         resProdutos.data?.forEach((p) => nomesMap.set(`prod_${p.id}`, p.nome))
         setMapaNomes(nomesMap)
-
-        if (resBadges.data) {
-          setBadges(resBadges.data)
-        }
       } catch (err) {
         console.error('Erro ao carregar dashboard do doador:', err.message)
       } finally {
@@ -91,24 +85,7 @@ function DoadorDashboard() {
     return ids.size
   }, [transacoes])
 
-  // Avaliação dinâmica de conquistas (Badges)
-  const badgesConquistados = useMemo(() => {
-    const doacoes = transacoes.filter((t) => t.tipo === 'doacao')
-    const mesesDistintos = new Set(
-      doacoes.map((t) => t.data?.substring(0, 7)).filter(Boolean)
-    )
-
-    return badges.map((badge) => {
-      let conquistado = false
-      if (badge.id === 'primeira-doacao') conquistado = doacoes.length >= 1
-      else if (badge.id === 'doador-frequente') conquistado = doacoes.length >= 5
-      else if (badge.id === 'generoso') conquistado = totalDoado >= 500
-      else if (badge.id === 'diversidade') conquistado = ongsApoiadas >= 3
-      else if (badge.id === 'recorrente') conquistado = mesesDistintos.size >= 2
-
-      return { ...badge, conquistado }
-    })
-  }, [badges, transacoes, totalDoado, ongsApoiadas])
+  // Avaliação dinâmica de conquistas (Badges) agora vive dentro de <BadgesDoador />
 
   function getDescricaoTransacao(t) {
     if (t.tipo === 'doacao') {
@@ -138,11 +115,18 @@ function DoadorDashboard() {
             </p>
           </div>
 
-          <Link to="/doador/ongs">
-            <Button variant="primary" size="lg">
-              Fazer nova doação
-            </Button>
-          </Link>
+          <div className="flex gap-3">
+            <Link to="/doador/creditos">
+              <Button variant="outline" size="lg">
+                Adquirir créditos
+              </Button>
+            </Link>
+            <Link to="/doador/ongs">
+              <Button variant="primary" size="lg">
+                Fazer nova doação
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Resumo de Métricas */}
@@ -172,27 +156,7 @@ function DoadorDashboard() {
         {/* Conquistas / Badges */}
         <div className="mb-10">
           <h2 className="text-xl font-bold text-gray-800 mb-4">Suas Conquistas</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {badgesConquistados.map((b) => (
-              <div
-                key={b.id}
-                className={`p-4 rounded-xl border text-center transition-all ${
-                  b.conquistado
-                    ? 'bg-green-50/60 border-green-200 text-gray-800'
-                    : 'bg-gray-50 border-gray-100 opacity-40 grayscale'
-                }`}
-              >
-                <div className="text-3xl mb-1">{b.icone}</div>
-                <p className="text-xs font-bold text-gray-800">{b.nome}</p>
-                <p className="text-[10px] text-gray-500 mt-0.5">{b.descricao}</p>
-                {b.conquistado && (
-                  <span className="inline-block mt-2 text-[10px] bg-green-200 text-green-800 font-semibold px-2 py-0.5 rounded-full">
-                    Conquistado
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+          <BadgesDoador userId={user?.id} />
         </div>
 
         {/* Histórico de Transações */}

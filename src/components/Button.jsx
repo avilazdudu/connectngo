@@ -19,7 +19,7 @@ function Button({
     outline:
       'border-2 border-green-600 text-green-700 hover:bg-green-50 focus:ring-green-500',
     ghost:
-      'text-blue-700 hover:bg-blue-50 focus:ring-blue-500',
+      'text-green-700 hover:bg-green-50 focus:ring-green-500',
   }
 
   const sizes = {

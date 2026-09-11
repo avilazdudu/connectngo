@@ -11,11 +11,12 @@ function Card({
   meta,
   onAction,
   actionLabel = 'Ver mais',
+  disabled = false,
 }) {
   return (
     // Wrapper com perspective — necessário para o filho 3D "ganhar profundidade"
     <div className="perspective-1000 w-full">
-      <div className="tilt-card preserve-3d bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 w-full">
+      <div className="tilt-card preserve-3d bg-white rounded-none shadow-sm overflow-hidden border border-gray-100 w-full">
         <div className="h-40 sm:h-48 w-full bg-blue-50 overflow-hidden">
           {image ? (
             <img
@@ -54,6 +55,7 @@ function Card({
             size="sm"
             fullWidth
             onClick={onAction}
+            disabled={disabled}
             className="mt-1"
           >
             {actionLabel}

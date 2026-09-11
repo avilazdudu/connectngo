@@ -1,13 +1,17 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Button from './Button'
 import Input from './Input'
 
 function DoacaoModal({ ong, saldoDisponivel, onClose, onConfirm }) {
+  const navigate = useNavigate()
   const [valor, setValor] = useState('')
   const [erro, setErro] = useState('')
+  const [saldoInsuficiente, setSaldoInsuficiente] = useState(false)
 
   function handleConfirm() {
     const valorNumerico = Number(valor)
+    setSaldoInsuficiente(false)
 
     if (!valorNumerico || valorNumerico <= 0) {
       setErro('Informe um valor válido.')
@@ -15,10 +19,12 @@ function DoacaoModal({ ong, saldoDisponivel, onClose, onConfirm }) {
     }
 
     if (valorNumerico > saldoDisponivel) {
-      setErro('Saldo insuficiente.')
+      setErro('Saldo insuficiente para esse valor.')
+      setSaldoInsuficiente(true)
       return
     }
 
+    setErro('')
     onConfirm(valorNumerico)
   }
 
@@ -43,6 +49,19 @@ function DoacaoModal({ ong, saldoDisponivel, onClose, onConfirm }) {
         <p className="text-xs text-gray-500 mt-1 mb-4">
           Saldo disponível: <strong>{saldoDisponivel} créditos</strong>
         </p>
+
+        {saldoInsuficiente && (
+          <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-700">
+            Você não tem créditos suficientes para essa doação.{' '}
+            <button
+              type="button"
+              onClick={() => navigate('/doador/creditos')}
+              className="underline font-semibold"
+            >
+              Adquirir mais créditos
+            </button>
+          </div>
+        )}
 
         <div className="flex gap-3">
           <Button variant="outline" fullWidth onClick={onClose}>

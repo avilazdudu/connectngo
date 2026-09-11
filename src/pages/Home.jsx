@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Navbar, Footer, Button, Card, Badge, MetricCard } from '../components'
 import { supabase } from '../services/supabase'
 import { useAuth } from '../context/AuthContext'
 
 function Home() {
   const { user, isAuthenticated } = useAuth()
+  const navigate = useNavigate()
   const [metricas, setMetricas] = useState(null)
   const [ongsDestaque, setOngsDestaque] = useState([])
   const [loading, setLoading] = useState(true)
@@ -78,6 +79,16 @@ function Home() {
     carregarDadosHome()
   }, [])
 
+  function handleDoarClique(ong) {
+    if (!isAuthenticated) {
+      navigate('/cadastro')
+      return
+    }
+    if (user.tipo !== 'doador') return
+
+    navigate(`/doador/ongs?busca=${encodeURIComponent(ong.nome)}`)
+  }
+
   return (
     <>
       <Navbar />
@@ -138,7 +149,7 @@ function Home() {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="flex flex-col items-center text-center p-6 bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="flex flex-col items-center text-center p-6 bg-white rounded-none border border-gray-100 shadow-sm">
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-xl font-bold text-green-700">
               1
             </div>
@@ -149,7 +160,7 @@ function Home() {
             </p>
           </div>
 
-          <div className="flex flex-col items-center text-center p-6 bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="flex flex-col items-center text-center p-6 bg-white rounded-none border border-gray-100 shadow-sm">
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-xl font-bold text-blue-700">
               2
             </div>
@@ -160,7 +171,7 @@ function Home() {
             </p>
           </div>
 
-          <div className="flex flex-col items-center text-center p-6 bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="flex flex-col items-center text-center p-6 bg-white rounded-none border border-gray-100 shadow-sm">
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-xl font-bold text-green-700">
               3
             </div>
@@ -210,6 +221,10 @@ function Home() {
               label="Estados com OSCs atuantes"
             />
           </div>
+
+          <p className="text-xs text-gray-400 text-center mt-4">
+            Fonte: dados agregados da plataforma ConnectNGO, com base em estimativas do setor.
+          </p>
         </div>
       </section>
 
@@ -242,34 +257,39 @@ function Home() {
                 category={`${ong.categoria} · ${ong.regiao}`}
                 arrecadado={ong.creditosRecebidos}
                 meta={Math.max(ong.creditosRecebidos + 1000, 3000)}
-                actionLabel="Doar créditos"
-                onAction={() => {}}
+                actionLabel={
+                  isAuthenticated && user.tipo !== 'doador' ? 'Apenas doadores' : 'Doar créditos'
+                }
+                disabled={isAuthenticated && user.tipo !== 'doador'}
+                onAction={() => handleDoarClique(ong)}
               />
             ))}
           </div>
         )}
       </section>
 
-      <section className="bg-gradient-to-r from-green-600 to-blue-600 px-4 sm:px-6 py-16">
-        <div className="max-w-3xl mx-auto text-center flex flex-col items-center gap-6">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white">
-            Pronto para fazer parte dessa corrente do bem?
-          </h2>
-          <p className="text-green-50 text-base sm:text-lg">
-            Cadastre-se gratuitamente como doador, ONG ou empresa e comece a gerar
-            impacto hoje mesmo.
-          </p>
-          <Link to="/cadastro">
-            <Button
-              variant="outline"
-              size="lg"
-              className="bg-white border-white text-green-700 hover:bg-green-50"
-            >
-              Criar minha conta
-            </Button>
-          </Link>
-        </div>
-      </section>
+      {!isAuthenticated && (
+        <section className="bg-gradient-to-r from-green-600 to-blue-600 px-4 sm:px-6 py-16">
+          <div className="max-w-3xl mx-auto text-center flex flex-col items-center gap-6">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white">
+              Pronto para fazer parte dessa corrente do bem?
+            </h2>
+            <p className="text-green-50 text-base sm:text-lg">
+              Cadastre-se gratuitamente como doador, ONG ou empresa e comece a gerar
+              impacto hoje mesmo.
+            </p>
+            <Link to="/cadastro">
+              <Button
+                variant="outline"
+                size="lg"
+                className="bg-white border-white text-green-700 hover:bg-green-50"
+              >
+                Criar minha conta
+              </Button>
+            </Link>
+          </div>
+        </section>
+      )}
 
       <Footer />
     </>
