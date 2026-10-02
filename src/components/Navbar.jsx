@@ -108,11 +108,15 @@ function Navbar() {
               </div>
             ) : (
               <>
-                <Link to="/login">
-                  <Button variant="ghost" size="sm">
-                    Entrar
-                  </Button>
-                </Link>
+               <Link to="/login">
+  <Button 
+    variant="ghost" 
+    size="sm" 
+    className="border border-transparent hover:border-gray-300 hover:bg-gray-50 transition-colors"
+  >
+    Entrar
+  </Button>
+</Link>
                 <Link to="/cadastro">
                   <Button variant="primary" size="sm">
                     Cadastrar
