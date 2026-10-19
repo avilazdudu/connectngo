@@ -13,9 +13,12 @@ import Perfil from '../pages/Perfil'
 import Feed from '../pages/Feed'
 import ComprarCreditos from '../pages/ComprarCreditos'
 import SobreNos from '../pages/SobreNos'
+import ScrollToTop from './ScrollToTop'
 
 function AppRoutes() {
   return (
+    <>
+    <ScrollToTop />
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
@@ -32,6 +35,7 @@ function AppRoutes() {
       <Route path="/perfil/:id" element={<Perfil />} />
       <Route path="/feed" element={<Feed />} />
     </Routes>
+    </>
   )
 }
 
