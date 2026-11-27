@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Navbar, Footer, Badge, Button, BadgesDoador } from '../components'
+import { Navbar, Footer, Badge, Button, BadgesDoador, ExcluirContaCard } from '../components'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabase'
 
@@ -10,6 +10,7 @@ function DoadorDashboard() {
   const [loading, setLoading] = useState(true)
   const [transacoes, setTransacoes] = useState([])
   const [mapaNomes, setMapaNomes] = useState(new Map())
+  const [anoEscolhido, setAnoEscolhido] = useState(null)
 
   useEffect(() => {
     async function carregarDashboard() {
@@ -75,6 +76,17 @@ function DoadorDashboard() {
       .filter((t) => t.tipo === 'doacao')
       .reduce((acc, curr) => acc + (Number(curr.valor) || 0), 0)
   }, [transacoes])
+
+  const anosComDoacao = useMemo(() => {
+    const anos = new Set(
+      transacoes
+        .filter((t) => t.tipo === 'doacao' && t.data)
+        .map((t) => Number(String(t.data).slice(0, 4)))
+    )
+    return [...anos].sort((a, b) => b - a)
+  }, [transacoes])
+
+  const anoComprovante = anoEscolhido ?? anosComDoacao[0]
 
   const ongsApoiadas = useMemo(() => {
     const ids = new Set(
@@ -159,6 +171,35 @@ function DoadorDashboard() {
           <BadgesDoador userId={user?.id} />
         </div>
 
+        {/* Comprovantes de doação */}
+        {anosComDoacao.length > 0 && (
+          <div className="mb-10 bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-gray-800">Comprovante de doações</h2>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Reúne todas as doações do ano em um documento para imprimir ou salvar em PDF.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <select
+                value={anoComprovante}
+                onChange={(e) => setAnoEscolhido(Number(e.target.value))}
+                className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700"
+                aria-label="Ano do comprovante"
+              >
+                {anosComDoacao.map((ano) => (
+                  <option key={ano} value={ano}>
+                    {ano}
+                  </option>
+                ))}
+              </select>
+              <Link to={`/doador/comprovante?ano=${anoComprovante}`}>
+                <Button variant="outline">Gerar comprovante</Button>
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Histórico de Transações */}
         <div>
           <h2 className="text-xl font-bold text-gray-800 mb-4">Histórico de Movimentações</h2>
@@ -180,17 +221,31 @@ function DoadorDashboard() {
                       {t.data ? new Date(t.data).toLocaleDateString('pt-BR') : '-'}
                     </p>
                   </div>
-                  <span
-                    className={`text-sm font-bold ${
-                      t.tipo === 'doacao' ? 'text-blue-600' : 'text-orange-600'
-                    }`}
-                  >
-                    -{t.valor} créditos
-                  </span>
+                  <div className="flex items-center gap-4">
+                    {t.tipo === 'doacao' && (
+                      <Link
+                        to={`/doador/comprovante/${t.id}`}
+                        className="text-xs text-green-700 font-medium hover:underline"
+                      >
+                        Comprovante
+                      </Link>
+                    )}
+                    <span
+                      className={`text-sm font-bold ${
+                        t.tipo === 'doacao' ? 'text-blue-600' : 'text-orange-600'
+                      }`}
+                    >
+                      -{t.valor} créditos
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
           )}
+        </div>
+
+        <div className="mt-12">
+          <ExcluirContaCard creditos={user?.saldoCreditos ?? 0} />
         </div>
       </section>
 

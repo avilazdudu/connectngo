@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Navbar, Footer, Badge } from '../components'
+import { Navbar, Footer, Badge, ExcluirContaCard } from '../components'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabase'
 
@@ -235,6 +235,10 @@ function OngDashboard() {
               </div>
             )}
           </div>
+        </div>
+
+        <div className="mt-12">
+          <ExcluirContaCard creditos={ong?.creditos_recebidos ?? 0} />
         </div>
       </section>
 

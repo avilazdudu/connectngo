@@ -12,6 +12,7 @@ import EmpresaProdutos from '../pages/EmpresaProdutos'
 import Perfil from '../pages/Perfil'
 import Feed from '../pages/Feed'
 import ComprarCreditos from '../pages/ComprarCreditos'
+import ComprovanteDoacao from '../pages/ComprovanteDoacao'
 import SobreNos from '../pages/SobreNos'
 import ScrollToTop from './ScrollToTop'
 
@@ -28,6 +29,8 @@ function AppRoutes() {
       <Route path="/doador/dashboard" element={<DoadorDashboard />} />
       <Route path="/doador/ongs" element={<DoadorOngs />} />
       <Route path="/doador/creditos" element={<ComprarCreditos />} />
+      <Route path="/doador/comprovante" element={<ComprovanteDoacao />} />
+      <Route path="/doador/comprovante/:id" element={<ComprovanteDoacao />} />
       <Route path="/ong/dashboard" element={<OngDashboard />} />
       <Route path="/ong/marketplace" element={<OngMarketplace />} />
       <Route path="/empresa/dashboard" element={<EmpresaDashboard />} />

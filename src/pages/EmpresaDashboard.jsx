@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Navbar, Footer, Badge, Button, MetricCard } from '../components'
+import { Navbar, Footer, Badge, Button, MetricCard, ExcluirContaCard } from '../components'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabase'
 
@@ -136,6 +136,10 @@ function EmpresaDashboard() {
             ))}
           </div>
         )}
+
+        <div className="mt-12">
+          <ExcluirContaCard creditos={empresa?.creditos_acumulados || 0} />
+        </div>
       </section>
 
       <Footer />

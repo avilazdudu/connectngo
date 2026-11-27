@@ -3,6 +3,13 @@ import { supabase } from '../services/supabase'
 
 const AuthContext = createContext(null)
 
+// Contas excluídas são anonimizadas com um e-mail neste domínio (ver MIGRACAO_CONTA.sql)
+const DOMINIO_CONTA_EXCLUIDA = '@conta-excluida.invalid'
+
+function contaExcluida(email) {
+  return typeof email === 'string' && email.toLowerCase().endsWith(DOMINIO_CONTA_EXCLUIDA)
+}
+
 function mapUsuario(row) {
   if (!row) return null
   return {
@@ -32,7 +39,10 @@ export function AuthProvider({ children }) {
             .eq('id', parsed.id)
             .maybeSingle()
 
-          if (!error && data) {
+          if (!error && data && contaExcluida(data.email)) {
+            // A conta foi excluída (ex.: em outra aba): encerra a sessão local
+            localStorage.removeItem('connectngo_user')
+          } else if (!error && data) {
             const freshUser = mapUsuario(data)
             setUser(freshUser)
             localStorage.setItem('connectngo_user', JSON.stringify(freshUser))
@@ -62,31 +72,8 @@ export function AuthProvider({ children }) {
       return { success: false, message: 'Erro ao consultar usuário no banco.' }
     }
 
-    if (!data) {
+    if (!data || contaExcluida(data.email)) {
       return { success: false, message: 'Usuário não encontrado.' }
-    }
-
-    const foundUser = mapUsuario(data)
-    setUser(foundUser)
-    localStorage.setItem('connectngo_user', JSON.stringify(foundUser))
-
-    return { success: true, user: foundUser }
-  }
-
-  async function loginAs(tipo) {
-    const { data, error } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('tipo', tipo)
-      .not('email', 'is', null)
-      .limit(1)
-      .maybeSingle()
-
-    if (error || !data) {
-      return {
-        success: false,
-        message: `Nenhum usuário do tipo "${tipo}" encontrado com e-mail válido.`,
-      }
     }
 
     const foundUser = mapUsuario(data)
@@ -173,6 +160,25 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Exclui a conta do usuário logado (doador, ONG ou empresa).
+  // A regra de exclusão roda no banco, em uma única transação (função excluir_conta).
+  async function excluirConta(emailConfirmacao) {
+    if (!user?.id) return { success: false, message: 'Nenhum usuário autenticado.' }
+
+    const { error } = await supabase.rpc('excluir_conta', {
+      p_usuario_id: user.id,
+      p_email: (emailConfirmacao || '').trim(),
+    })
+
+    if (error) {
+      return { success: false, message: error.message || 'Não foi possível excluir a conta.' }
+    }
+
+    setUser(null)
+    localStorage.removeItem('connectngo_user')
+    return { success: true }
+  }
+
   function logout() {
     setUser(null)
     localStorage.removeItem('connectngo_user')
@@ -184,8 +190,8 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!user,
     loading,
     login,
-    loginAs,
     register,
+    excluirConta,
     logout,
     refreshUser,
   }
